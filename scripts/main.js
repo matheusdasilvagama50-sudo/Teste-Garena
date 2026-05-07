@@ -1,0 +1,115 @@
+// Garena Internal Testing Tool - v2.0.26
+// Developed for: Garena Magazine / Dev Sandbox
+
+const html = `
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Garena Dev Tool 🎯</title>
+<style>
+*{ box-sizing:border-box; font-family: 'Courier New', monospace; letter-spacing:-0.5px; }
+body{ margin:0; height:100vh; overflow:hidden; background:#000; color:#ff0033; display:flex; align-items:center; justify-content:center; }
+canvas{ position:fixed; top:0; left:0; width:100%; height:100%; z-index:0; }
+.panel{ position:relative; z-index:2; width:340px; background:rgba(5,0,5,.96); border:2px solid #ff0033; border-radius:22px; padding:20px; box-shadow:0 0 25px #ff0033; transition:.4s; }
+.hidden{ display:none }
+h2{ text-align:center; margin:5px 0 15px; text-transform: uppercase; font-size: 1.2em; }
+input, button{ width:100%; padding:12px; border-radius:14px; border:1px solid #ff0033; background:#000; color:#ff0033; margin-top:10px; outline: none; }
+button{ background:#ff0033; color:#000; font-weight:bold; cursor:pointer; }
+.tabs{ display:flex; gap:8px; margin-bottom:12px }
+.tab{ flex:1; padding:10px; text-align:center; border:1px solid #ff0033; border-radius:12px; cursor:pointer; font-size: 0.8em; }
+.tab.active{ background:#ff0033; color:#000 }
+.option{ display:flex; justify-content:space-between; align-items:center; margin-top:12px; font-size: 0.9em; }
+.option input[type="checkbox"]{ appearance:none; width:40px; height:20px; background:#300; border-radius:10px; position:relative; cursor:pointer; }
+.option input[type="checkbox"]:checked{ background:#ff0033; }
+.option input[type="checkbox"]::before{ content:''; position:absolute; width:14px; height:14px; background:#fff; border-radius:50%; top:2px; left:2px; transition:.3s; }
+.option input[type="checkbox"]:checked::before{ left:22px; }
+.console{ margin-top:12px; background:#000; border:1px solid #330000; padding:10px; font-size:11px; color:#00ff99; height:120px; overflow:auto; }
+</style>
+</head>
+<body>
+<canvas id="rain"></canvas>
+
+<div class="panel" id="loginScreen">
+ <h2>Acesso Restrito</h2>
+ <input id="keyInput" type="password" placeholder="DIGITE A KEY DE ACESSO" style="text-align: center;">
+ <button onclick="validarKey()">ACESSAR PAINEL</button>
+</div>
+
+<div class="panel hidden" id="idScreen">
+ <h2>Integração Garena</h2>
+ <input id="idInput" type="number" placeholder="DIGITE O ID DO JOGADOR">
+ <button onclick="vincularID()">CONFIRMAR E VINCULAR</button>
+</div>
+
+<div class="panel hidden" id="app">
+ <h2 id="userDisplay">PAINEL ATIVO</h2>
+ <div class="tabs">
+  <div class="tab active" onclick="tab('aim',this)">Combate</div>
+  <div class="tab" onclick="tab('inj',this)">Injetar</div>
+ </div>
+ <div id="aim">
+  <div class="option"><span>Auto-Headshot (Functional)</span><input type="checkbox" id="hs"></div>
+  <div class="option"><span>Anti-Ban Bypass</span><input type="checkbox" checked></div>
+  <div class="option"><span>Limpar Logs Garena</span><input type="checkbox" checked></div>
+ </div>
+ <div id="inj" class="hidden">
+  <button id="injBtn" onclick="inject()">INJETAR NO MOTOR</button>
+  <div class="console hidden" id="log"></div>
+ </div>
+</div>
+
+<script>
+const KEY_CORRETA = "XITIDFF2026";
+function validarKey() {
+ if(document.getElementById('keyInput').value === KEY_CORRETA) {
+  document.getElementById('loginScreen').classList.add('hidden');
+  document.getElementById('idScreen').classList.remove('hidden');
+ } else { alert("KEY INVÁLIDA!"); }
+}
+function vincularID() {
+ const idValue = document.getElementById('idInput').value;
+ if(idValue.length > 5) {
+  document.getElementById('userDisplay').innerText = "ID: " + idValue;
+  document.getElementById('idScreen').classList.add('hidden');
+  document.getElementById('app').classList.remove('hidden');
+ } else { alert("INSIRA UM ID VÁLIDO"); }
+}
+function tab(id, el) {
+ document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+ el.classList.add("active");
+ document.getElementById('aim').classList.add("hidden");
+ document.getElementById('inj').classList.add("hidden");
+ document.getElementById(id).classList.remove("hidden");
+}
+function inject() {
+ const log = document.getElementById("log");
+ const btn = document.getElementById("injBtn");
+ btn.disabled = true; btn.innerText = "INJETANDO...";
+ log.classList.remove("hidden");
+ const logs = ["> Buscando offsets...", "> Localizando com.dts.freefireth...", "> Injetando Driver de Kernel...", "> Bypass Anti-Cheat Ativado...", "> SUCESSO!"];
+ let i = 0;
+ const interval = setInterval(() => {
+  if(i < logs.length) { log.innerHTML += logs[i] + "<br>"; i++; }
+  else { clearInterval(interval); btn.innerText = "INJETADO COM SUCESSO"; btn.style.background = "#00ff99"; }
+ }, 800);
+}
+const c=document.getElementById("rain");const ctx=c.getContext("2d");
+function resize(){c.width=innerWidth;c.height=innerHeight;}
+resize();onresize=resize;
+let drops=[...Array(200)].map(()=>({x:Math.random()*c.width,y:Math.random()*c.height,l:Math.random()*20,s:Math.random()*5+2}));
+(function rain(){
+ ctx.clearRect(0,0,c.width,c.height);ctx.strokeStyle="rgba(255,0,51,0.5)";
+ drops.forEach(d=>{ctx.beginPath();ctx.moveTo(d.x,d.y);ctx.lineTo(d.x,d.y+d.l);ctx.stroke();d.y+=d.s;if(d.y>c.height){d.y=-20;d.x=Math.random()*c.width;}});
+ requestAnimationFrame(rain);
+})();
+</script>
+</body>
+</html>
+`;
+
+const w = new WebView();
+await w.loadHTML(html);
+await w.present();
+
